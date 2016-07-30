@@ -40,3 +40,16 @@ This so that changes in the interactions between collaborators and the object un
         }
     }
 ```
+
+###Limitations:
+
+  * ~~Not Thread Safe~~
+  * ~~Does not verify invocations~~
+  * Creates dumb proxy, does not allow proxying calls to actual implementation 
+  * Does not allow verifying order of call
+  * Only serializes to json
+  * Only support simple string comparison on serialized invocations (does not support custom equality)
+  * Does not include class info to serialized invocations (so for safety, each proxy requires recording to separate files) 
+  * Has not been tested using one invocation store with multiple proxied services  
+  * Only supports storing invocations in a file small enough to fit in memory when loaded (maybe nice to store in DB/mongo)
+  * Some boiler plate when verifying calls  
