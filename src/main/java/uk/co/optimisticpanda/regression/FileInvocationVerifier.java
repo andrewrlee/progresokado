@@ -11,7 +11,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.assertj.core.api.Condition;
 import org.assertj.core.api.SoftAssertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,12 +70,8 @@ public class FileInvocationVerifier implements Observer<String>, Closeable {
 	}
 	
 	public void verifyInvocationsMatchRecorded() {
-		Condition<? super Iterable<? extends String>> condition = 
-				new Condition<>(list -> !list.iterator().hasNext(), "aa")
-				.describedAs("bb");
-		
 		SoftAssertions softly = new SoftAssertions();
-		softly.assertThat(lines).as("Remaining invocations").is(condition);
+		softly.assertThat(lines).as("Remaining invocations").isEmpty();
 		softly.assertThat(unexpected).as("Unexpected invocations").isEmpty();
 		softly.assertAll();
 	}
