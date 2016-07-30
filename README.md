@@ -1,23 +1,42 @@
 # progresokado
 
+This library intercepts methods calls on an object and serializes them to a file. 
+On later test runs, the file is loaded and calls to the object can then be matched against the previously recorded invocations.
+This so that changes in the interactions between collaborators and the object under test can be detected.   
 
+###Example:
 ```java
-
-InvocationListener listener = InvocationListener.ignoring("hps");
-TestService service = ProxyFactory.createProxy(TestService.class, listener);
-
-try (FileInvocationRecorder store = FileInvocationRecorder.create(tape)) {
-
-  listener.asObservable().subscribe(store);
 	
-  service.createPerson("aa\na", 22);
-  service.getTheThingsName();
-  service.takeTheThing(new Thing(1200, asList("bob", "cheryll"), new Person("Ralf", -21)));
-}
+    @Rule public TemporaryFolder folder = new TemporaryFolder();
+    private TestService service;
+    private InvocationListener listener;
+    private File tape;
 
-assertThat(tape).hasContent(
-  "{\"name\":\"createPerson\",\"arguments\":[\"aa\\na\",22]}\n" +
-  "{\"name\":\"getTheThingsName\",\"arguments\":[]}\n" + 
-  "{\"name\":\"takeTheThing\",\"arguments\":[{\"age\":1200,\"lastVictim\":{\"name\":\"Ralf\"},\"victims\":[\"bob\",\"cheryll\"]}]}\n");
+    @Before
+    public void setup() throws IOException {
+        this.listener = InvocationListener.ignoringAnyFieldsNamed("hps");
+        this.service = ProxyFactory.createProxy(TestService.class, listener);
+        this.tape = folder.newFile("tape.json");
+    }
 
+    @Test
+    public void checkAssertAllInvocationsMatch() throws IOException {
+        try (FileInvocationRecorder recorder = FileInvocationRecorder.subscribedTo(tape, listener.asObservable())) {
+            service.takeTheThing(new Thing(1200, asList("bob", "cheryll"), new Person("Ralf", -21)));
+            service.createPerson("aaa", 22);	
+        }
+
+        try (FileInvocationVerifier verifier = FileInvocationVerifier.subscribedTo(tape, listener.asObservable())) {
+            service.takeTheThing(new Thing(1200, asList("bob", "cheryll"), new Person("Ralf", -21)));
+            service.createPerson("aaa", 23);
+			
+            assertThatThrownBy(() -> verifier.verifyInvocationsMatchRecorded())
+                .hasMessage("\n" + 
+                    "The following 2 assertions failed:\n" + 
+                    "1) [Remaining invocations] \n" + 
+						"Expecting empty but was:<[\"{\"name\":\"createPerson(java.lang.String,int)\",\"arguments\":[\"aaa\",22]}\"]>\n" + 
+                    "2) [Unexpected invocations] \n" + 
+                    "Expecting empty but was:<[\"{\"name\":\"createPerson(java.lang.String,int)\",\"arguments\":[\"aaa\",23]}\"]>\n");
+        }
+    }
 ```

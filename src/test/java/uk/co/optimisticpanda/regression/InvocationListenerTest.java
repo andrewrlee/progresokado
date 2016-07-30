@@ -19,7 +19,7 @@ public class InvocationListenerTest {
 
 	@Before
 	public void setup() throws IOException {
-		listener = InvocationListener.ignoring("hps");
+		listener = InvocationListener.ignoringAnyFieldsNamed("hps");
 		service = ProxyFactory.createProxy(TestService.class, listener);
 	}
 
@@ -35,8 +35,8 @@ public class InvocationListenerTest {
 
 		subscriber.assertNoErrors();
 		subscriber.assertValues(
-				"{\"name\":\"createPerson\",\"arguments\":[\"aa\\na\",22]}",
-				"{\"name\":\"getTheThingsName\",\"arguments\":[]}",
-				"{\"name\":\"takeTheThing\",\"arguments\":[{\"age\":1200,\"lastVictim\":{\"name\":\"Ralf\"},\"victims\":[\"bob\",\"cheryll\"]}]}");
+				"{\"name\":\"createPerson(java.lang.String,int)\",\"arguments\":[\"aa\\na\",22]}",
+				"{\"name\":\"getTheThingsName()\",\"arguments\":[]}",
+				"{\"name\":\"takeTheThing(uk.co.optimisticpanda.regression.TestService$Thing)\",\"arguments\":[{\"age\":1200,\"lastVictim\":{\"name\":\"Ralf\"},\"victims\":[\"bob\",\"cheryll\"]}]}");
 	}	
 }

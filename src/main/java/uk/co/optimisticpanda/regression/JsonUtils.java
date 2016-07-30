@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 public class JsonUtils {
 
 	@JsonFilter("filter properties by name")
-	class PropertyFilterMixIn {
+	private static class PropertyFilterMixIn {
 	}
 
 	private final ObjectMapper mapper;

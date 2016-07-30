@@ -1,5 +1,7 @@
 package uk.co.optimisticpanda.regression;
 
+import static java.lang.String.join;
+
 import java.util.List;
 
 public class TestService {
@@ -7,9 +9,19 @@ public class TestService {
 	public String createPerson(String surname, int age) {
 		return "Sam " + surname + " is " + age;
 	}
+	
+	public String createPerson(String surname) {
+		return "Sam " + surname;
+	}
+	
+	public String createPerson(int age, String... names) {
+		return join(" ", names) + " is " + age;
+	}
+	
 	public String getTheThingsName() {
 		return "The Thing";
 	}
+	
 	public void takeTheThing(Thing thing) {
 	}
 	
@@ -30,7 +42,6 @@ public class TestService {
 				this.name = name;
 				this.hps = hps;
 			} 
-			
 		}
 	}
 }

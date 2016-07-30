@@ -5,11 +5,10 @@ import com.google.common.base.Throwables;
 public class Exceptions {
 
 	public static void propagateAnyError(VoidExceptionHandler handler) {
-		try {
+		propagateAnyError(() -> {
 			handler.accept();
-		} catch (Exception e) {
-			throw Throwables.propagate(e);
-		}
+			return null;
+		});
 	}
 
 	public static <T> T propagateAnyError(ExceptionHandler<T> handler) {

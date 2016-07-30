@@ -7,38 +7,29 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
-import java.nio.file.Files;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Charsets;
-import com.google.common.collect.LinkedHashMultiset;
-import com.google.common.collect.Multiset;
-
+import rx.Observable;
 import rx.Observer;
+import rx.Subscription;
+
 public class FileInvocationRecorder implements Observer<String>, Closeable {
 
 	private static final Logger L = LoggerFactory.getLogger(FileInvocationRecorder.class);
 	private final BufferedWriter writer;
-	private final File tape;
+	private final Subscription subscription;
 
-	private FileInvocationRecorder(File tape) {
-		this.tape = tape;
+	private FileInvocationRecorder(File tape, Observable<String> observable) {
+		propagateAnyError(() ->  new FileOutputStream(tape).getChannel().truncate(0).close());
+		this.subscription = observable.subscribe(this);
 		this.writer = propagateAnyError(() -> new BufferedWriter(new FileWriter(tape)));
 	}
-
-	public static Multiset<String> load(File tape) {
-		List<String> lines = propagateAnyError(() -> Files.readAllLines(tape.toPath(), Charsets.UTF_8));
-		return LinkedHashMultiset.create(lines);
-	}
 	
-	public static FileInvocationRecorder create(File tape) {
-		propagateAnyError(() ->  new FileOutputStream(tape).getChannel().truncate(0).close());
-		return new FileInvocationRecorder(tape);
+	public static FileInvocationRecorder subscribedTo(File tape, Observable<String> observable) {
+		return new FileInvocationRecorder(tape, observable);
 	}
-	
 	
 	@Override
 	public void onCompleted() {
@@ -57,6 +48,7 @@ public class FileInvocationRecorder implements Observer<String>, Closeable {
 
 	@Override
 	public void close() {
+		subscription.unsubscribe();
 		propagateAnyError(() -> writer.close());
 	}
 }
